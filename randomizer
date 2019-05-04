@@ -1,0 +1,205 @@
+#!/bin/bash
+
+# DONE: COUNTING THE LENGTH OF A VIDEO IN SECONDS
+# DO: make new timeStamp. but the new rnd hour minute or second must not be higher than the one in the original timeStamp
+
+# function to get random vid file index and save to rndVidVal
+#
+# rndNum "$vidsArrLen"
+# echo ${vidsArr[rndVidVal]}
+# 
+# ^-- to get new rnd vid filename
+
+# prepare videos for processing
+theConverter()
+{
+	convert="ffmpeg -y -i '$1' -f mp4 -vcodec libx264 -preset fast -profile:v main -acodec aac '$2' -hide_banner"
+	eval $convert
+}
+
+rndNum()
+{
+	# $1 is arg for number of files (videos)
+	rndVidIndex=$((0 + RANDOM % $1))
+}
+
+rndTimeMaker()
+{
+	timeStamp=$1
+
+	hours=${timeStamp:10:2}
+
+	minutes=${timeStamp:13:2}
+
+	seconds=${timeStamp:16:2}
+
+	if [ ${hours:0:1} -eq 0 ]; then
+		hours=${hours:1:1}
+	fi
+	if [ $hours -ge 1 ];then
+		rndMinutes=$((0 + RANDOM % 59))
+	fi
+	if [ $hours -lt 1 ];then
+		rndMinutes=$((0 + RANDOM % ($minutes - 1)))
+	fi
+
+	if [ ${minutes:0:1} -eq 0 ]; then
+		minutes=${minutes:1:1}
+	fi
+	if [ $minutes -ge 1 ];then
+		rndSeconds=$((0 + RANDOM % 59))
+	fi
+	if [ $minutes -lt 1 ];then
+		if [ $seconds -gt 1 ]; then
+			rndSeconds=$((0 + RANDOM % ($seconds - 1)))
+		fi
+	fi
+
+	if [ ${seconds:0:1} -eq 0 ]; then
+		seconds=${seconds:1:1}
+	fi
+
+	if [ $hours -ne 0 ]; then
+		rndHours=$((0 + RANDOM % $hours))
+		hours=$rndHours
+	fi
+	if [ $minutes -ne 0 ]; then
+		rndMinutes=$((0 + RANDOM % $minutes))
+		minutes=$rndMinutes
+	fi
+	if [ $seconds -ne 0 ]; then
+		rndSeconds=$((0 + RANDOM % $seconds))
+		seconds=$rndSeconds
+	fi
+
+	# converts back to 00 format
+	hours=$(printf %02d $hours)
+	minutes=$(printf %02d $minutes)
+	seconds=$(printf %02d $seconds)
+
+	formattedTime="$hours:$minutes:$seconds"
+}
+
+#---
+# make array out of items in current dir
+IFS=$'\t\n'
+vidsArr=($(ls -q *.*))
+
+for i in "${vidsArr[@]}"
+do
+	:
+		echo $i
+		echo
+done
+
+
+# length of vidsListArr
+vidsArrLen=${#vidsArr[@]}
+#---
+
+# ffmpeg command to find out video's length in seconds
+getVidLenStr()
+{
+	# $1 is arg for video filename
+	vidLenStr=$(eval "ffprobe $1 -show_format 2>&1 | grep -o -P 'Duration: ........'")
+}
+
+makeTmp()
+{
+	makeTmp="ffmpeg -y -i $rndVidName -ss $formattedTime -t 00:00:00.7 -async 1 -strict -2 'tmp.mp4'"
+	eval $makeTmp
+	theConverter 'tmp.mp4' 'tmpCon.mp4'
+}
+
+makeTmp1()
+{
+	makeTmp="ffmpeg -y -i $rndVidName -ss $formattedTime -t 00:00:00.7 -async 1 -strict -2 'tmp1.mp4'"
+	eval $makeTmp
+	theConverter 'tmp1.mp4' 'tmp1Con.mp4'
+}
+
+makeTmp2()
+{
+	makeTmp="ffmpeg -y -i $rndVidName -ss $formattedTime -t 00:00:00.7 -async 1 -strict -2 'tmp2.mp4'"
+	eval $makeTmp
+	theConverter 'tmp2.mp4' 'tmp2Con.mp4'
+}
+
+makeTmp3()
+{
+	makeTmp="ffmpeg -y -i $rndVidName -ss $formattedTime -t 00:00:00.7 -async 1 -strict -2 'tmp3.mp4'"
+	eval $makeTmp
+	theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+}
+
+# ffmpeg command to cut out 1s out of random vid and save to Output/vidosik.mp4
+theRandomizer()
+{
+	# pick rnd vid filename
+	rndNum "$vidsArrLen"
+	rndVidName=\'${vidsArr[rndVidIndex]}\'
+	# find out rndVidName video's length in seconds
+	getVidLenStr $rndVidName
+	rndTimeMaker $vidLenStr
+}
+
+# make copy of current final vid for further processing
+concat="ffmpeg -y -f concat -i inputs -vcodec copy -acodec copy tmp.mp4"
+
+# make current final vid
+concat2="ffmpeg -y -f concat -i inputs2 -vcodec copy -acodec copy tmp3.mp4"
+
+# theRandomizer creates new random vars
+theRandomizer
+makeTmp1
+theRandomizer
+makeTmp2
+# tmp1.mp4 + tmp2.mp4 = tmp.mp4
+eval $concat
+theConverter 'tmp.mp4' 'tmpCon.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
+theRandomizer
+makeTmp
+eval $concat2
+theConverter 'tmp3.mp4' 'tmp3Con.mp4'
+
